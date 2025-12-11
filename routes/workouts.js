@@ -7,7 +7,7 @@ const router = express.Router();
 // Middleware to protect logged-in routes
 // ===============================================
 function requireLogin(req, res, next) {
-  if (!req.session.isLoggedIn) {
+  if (!req.session || !req.session.isLoggedIn) {
     const base = process.env.HEALTH_BASE_PATH || '/usr/428/';
     return res.redirect(`${base}login`);
   }
@@ -18,8 +18,8 @@ function requireLogin(req, res, next) {
 // 1. ADD WORKOUT ROUTES
 // ===============================================
 
-// GET /add_workout - Render add workout form
-router.get('/add_workout', requireLogin, (req, res) => {
+// GET /add-workout - Render add workout form
+router.get('/add-workout', requireLogin, (req, res) => {
   res.render('add_workout', {
     pageTitle: 'Add Workout',
     error: null,
@@ -27,8 +27,8 @@ router.get('/add_workout', requireLogin, (req, res) => {
   });
 });
 
-// POST /add_workout - Handle form submission
-router.post('/add_workout', requireLogin, async (req, res) => {
+// POST /add-workout - Handle form submission
+router.post('/add-workout', requireLogin, async (req, res) => {
   const { workout_date, type, duration_minutes, notes } = req.body;
   const pool = req.app.locals.pool;
 

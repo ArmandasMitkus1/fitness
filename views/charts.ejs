@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title><%= pageTitle %></title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <h1>Workout Summary for <%= username %></h1>
+
+  <canvas id="workoutChart" width="600" height="400"></canvas>
+
+  <script>
+    const chartData = <%- JSON.stringify(chartData) %>;
+
+    const labels = chartData.map(d => d.type);
+    const values = chartData.map(d => d.total_duration);
+
+    const ctx = document.getElementById('workoutChart').getContext('2d');
+
+    new Chart(ctx, {
+      type: 'bar', // you can switch to 'line' for a line chart
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Total Duration (min)',
+          data: values,
+          backgroundColor: 'rgba(75, 192, 192, 0.6)',
+          borderColor: 'rgba(75, 192, 192, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Minutes'
+            }
+          },
+          x: {
+            title: {
+              display: true,
+              text: 'Workout Type'
+            }
+          }
+        }
+      }
+    });
+  </script>
+
+  <p><a href="/logs">Back to Logs</a></p>
+</body>
+</html>

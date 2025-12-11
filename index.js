@@ -9,7 +9,7 @@ const path = require('path');
 // 1. Setup Express
 const express = require('express');
 const app = express();
-const PORT = 8000; [cite_start]// Required port: The app must listen on port 8000 [cite: 38]
+const PORT = 8000; // Required port: The app must listen on port 8000
 
 // 2. Setup EJS as the view engine - ***FIXED PATH***
 app.set('view engine', 'ejs');
@@ -27,7 +27,7 @@ app.use(express.json());
 // REQUIRED: Session Middleware (for authentication)
 const session = require('express-session');
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'A_STRONG_FALLBACK_SECRET_KEY', // Recommended to use a variable from .env
+    secret: process.env.SESSION_SECRET || 'A_STRONG_FALLBACK_SECRET_KEY',
     resave: false,
     saveUninitialized: false,
     // Note: cookie: { secure: false } is appropriate for the non-HTTPS VM deployment
@@ -62,7 +62,7 @@ const router = express.Router(); // Main Router for unauthenticated pages (Home,
 const authRoutes = require('./routes/auth'); // NEW AUTH ROUTES
 const workoutRoutes = require('./routes/workouts'); 
 
-[cite_start]// Core Compulsory Pages (Home and About) [cite: 27, 28]
+// Core Compulsory Pages (Home and About)
 router.get('/', (req, res) => {
     // The EJS engine will look for views/index.ejs
     res.render('index', { pageTitle: 'Home Page' });

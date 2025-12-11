@@ -48,5 +48,5 @@ Users can register, log in, add workout entries, view their workout history, and
 ### 3.2. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/10_health_XXXXXXXX.git
+git clone https://github.com/your-username/10_health_33784157.git
 cd 10_health_XXXXXXXX

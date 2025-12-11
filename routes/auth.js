@@ -2,7 +2,8 @@
 
 const express = require('express');
 const router = express.Router();
-// const bcrypt = require('bcrypt'); // <-- COMMENTED OUT to avoid crash
+const bcrypt = require('bcrypt'); 
+// NOTE: bcrypt must be successfully installed on your VM
 
 // =========================================================
 // 1. LOGIN ROUTES
@@ -27,37 +28,8 @@ router.post('/login', async (req, res) => {
         const user = rows[0];
 
         if (user) {
-            // WARNING: Since bcrypt is bypassed for register, this login code 
-            // will ONLY work for the 'gold' user (which was pre-hashed in SQL).
-            // This is acceptable for submission testing.
-            
             // 2. Password Check (using bcrypt)
-            // If bcrypt is installed, this line works:
-            // const match = await bcrypt.compare(password, user.password_hash);
-            
-            // *** TEMPORARY LOGIN FIX: If bcrypt is crashing, use this insecure bypass ***
-            let match = false;
-            // Only try to compare if password_hash looks like a hash (i.e., the gold user)
-            if (user.password_hash.startsWith('$2b$10$')) {
-                // If bcrypt is imported, uncomment this line
-                // match = await bcrypt.compare(password, user.password_hash);
-                
-                // For final submission using the pre-hashed gold user:
-                // We assume the gold user's hash is correct and focus on application flow.
-                // You must ensure the password 'smiths123ABC$' is used for gold.
-                
-                // For now, let's keep the real bcrypt code commented out.
-                // We rely on the gold user's hash being correct if bcrypt works.
-                match = true; // TEMPORARILY SET TO TRUE FOR GOLD USER IF USING THE CORRECT PASSWORD
-            }
-            
-            // If the user was registered via the insecure bypass, you'd compare plain text:
-            // if (!match) match = (password === user.password_hash);
-
-            // Reverting to the assumption that if the code gets here and gold is used, 
-            // the marker expects a pass. Let's trust the database query for a moment.
-            
-            // Re-enabling the correct bcrypt logic, assuming installation will succeed after restart
+            // *** ONLY ONE DECLARATION OF 'match' HERE ***
             const match = await bcrypt.compare(password, user.password_hash);
             
             if (match) {
@@ -87,7 +59,7 @@ router.post('/login', async (req, res) => {
 
 
 // =========================================================
-// 2. REGISTRATION ROUTES (INSECURE BYPASS)
+// 2. REGISTRATION ROUTES (SECURE)
 // =========================================================
 
 // GET /register - Renders the registration form
@@ -115,11 +87,9 @@ router.post('/register', async (req, res) => {
             return res.render('register', { pageTitle: 'User Registration', error: 'Username or Email already in use.' });
         }
 
-        // *** HASHING BYPASS: This is the critical change to prevent the crash ***
-        // const saltRounds = 10;
-        // const password_hash = await bcrypt.hash(password, saltRounds); // <-- CRASHING LINE (COMMENTED OUT)
-        
-        const password_hash = password; // <-- INSECURE: Storing plaintext password for debugging/testing flow
+        // 3. Hash the password
+        const saltRounds = 10;
+        const password_hash = await bcrypt.hash(password, saltRounds);
 
         // 4. Insert new user into the database
         await pool.query(
@@ -131,6 +101,7 @@ router.post('/register', async (req, res) => {
         res.redirect('/login?registered=true');
 
     } catch (error) {
+        // If this runs, it means the database query failed OR bcrypt failed.
         console.error('Registration error:', error);
         res.render('register', { pageTitle: 'User Registration', error: 'An unexpected error occurred during registration.' });
     }

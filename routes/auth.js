@@ -82,4 +82,71 @@ router.get('/register', (req, res) => {
 
 // POST /register - create new user
 router.post('/register', async (req, res) => {
-    const { username, email, password, confirm_pa_
+    const { username, email, password, confirm_password } = req.body;
+    const pool = req.app.locals.pool;
+
+    // Simple password confirmation check
+    if (password !== confirm_password) {
+        return res.render('register', {
+            pageTitle: 'User Registration',
+            error: 'Passwords do not match.'
+        });
+    }
+
+    try {
+        // Check if username or email already exists
+        const [existingUser] = await pool.query(
+            'SELECT id FROM User WHERE username = ? OR email = ?',
+            [username, email]
+        );
+
+        if (existingUser.length > 0) {
+            return res.render('register', {
+                pageTitle: 'User Registration',
+                error: 'Username or Email already in use.'
+            });
+        }
+
+        // Hash password
+        const saltRounds = 10;
+        const password_hash = await bcrypt.hash(password, saltRounds);
+
+        // Insert into DB
+        await pool.query(
+            'INSERT INTO User (username, email, password_hash) VALUES (?, ?, ?)',
+            [username, email, password_hash]
+        );
+
+        console.log(`✅ New user registered: ${username}`);
+        // Redirect through Goldsmiths proxy path
+        res.redirect(`${BASE_PATH}login?registered=true`);
+
+    } catch (error) {
+        console.error('❌ Registration error:', {
+            code: error.code,
+            message: error.message,
+            sqlMessage: error.sqlMessage
+        });
+
+        res.render('register', {
+            pageTitle: 'User Registration',
+            error: 'An unexpected error occurred during registration.'
+        });
+    }
+});
+
+// =========================================================
+// 3. LOGOUT ROUTE
+// =========================================================
+
+// GET /logout - destroy session and go to login
+router.get('/logout', (req, res) => {
+    req.session.destroy(err => {
+        if (err) {
+            console.error('❌ Logout error:', err);
+        }
+        res.redirect(`${BASE_PATH}login`);
+    });
+});
+
+module.exports = router;

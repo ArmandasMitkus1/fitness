@@ -1,10 +1,10 @@
--- 1) Create the database (change the name if needed)
-CREATE DATABASE IF NOT EXISTS health_app;
+-- Create the main database used by your Node app
+CREATE DATABASE IF NOT EXISTS health;
 
--- 2) Use that database
-USE health_app;
+-- Use it
+USE health;
 
--- 3) Create the User table used by auth.js
+-- Create the User table expected by auth.js
 DROP TABLE IF EXISTS User;
 
 CREATE TABLE User (
@@ -14,4 +14,3 @@ CREATE TABLE User (
     password_hash VARCHAR(255) NOT NULL,
     created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-

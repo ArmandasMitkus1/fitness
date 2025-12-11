@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('partials/head') %>
+</head>
+<body>
+    <%- include('partials/header') %>
+    <main>
+        <h2>Welcome to the Health and Fitness Tracker!</h2>
+        <p>This application allows you to securely log your fitness achievements, track your progress, and search through your historical data.</p>
+        
+        <% if (isLoggedIn) { %>
+            <div class="cta-container">
+                <a href="/add-workout" class="button-primary">Log a New Workout</a>
+                <a href="/logs" class="button-secondary">View My Logs</a>
+            </div>
+        <% } else { %>
+            <div class="cta-container">
+                <a href="/login" class="button-primary">Login to Start Tracking</a>
+            </div>
+        <% } %>
+        
+        <h3>Required Features Checklist:</h3>
+        <ul>
+            [cite_start]<li>Home Page [cite: 27] (This page)</li>
+            [cite_start]<li>About Page [cite: 28]</li>
+            [cite_start]<li>Search Functionality [cite: 29] (See Logs & Search)</li>
+            [cite_start]<li>Database Storage [cite: 30]</li>
+            [cite_start]<li>Data Entry Form [cite: 31] (See Add Workout)</li>
+        </ul>
+
+    </main>
+    <%- include('partials/footer') %>
+</body>
+</html>

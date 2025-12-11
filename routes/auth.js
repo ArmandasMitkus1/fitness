@@ -2,61 +2,54 @@
 
 const express = require('express');
 const router = express.Router();
-// NOTE: You must also require bcrypt if you are handling POST login/registration
-// const bcrypt = require('bcrypt'); 
+const bcrypt = require('bcrypt'); // Make sure bcrypt is required!
 
-// GET /login - Renders the login form
-router.get('/login', (req, res) => {
-    // *** FIX: Initialize the 'error' variable to prevent ReferenceError on first load ***
-    res.render('login', { 
-        pageTitle: 'User Login',
-        error: null // <-- FIX IS HERE
+// (Your existing /login and /logout routes go here)
+
+// --- NEW REGISTRATION ROUTES ---
+
+// GET /register - Renders the registration form
+router.get('/register', (req, res) => {
+    res.render('register', { 
+        pageTitle: 'User Registration',
+        error: null // Initialize error variable
     });
 });
 
-// POST /login - Handles form submission and authentication
-router.post('/login', async (req, res) => {
-    const { username, password } = req.body;
+// POST /register - Handles new user creation
+router.post('/register', async (req, res) => {
+    const { username, email, password, confirm_password } = req.body;
     const pool = req.app.locals.pool;
-
-    // 1. Basic check for user existence
-    const [rows] = await pool.query('SELECT * FROM User WHERE username = ?', [username]);
-    const user = rows[0];
-
-    if (user) {
-        // 2. Password Check (using bcrypt)
-        // const match = await bcrypt.compare(password, user.password_hash);
-        
-        // --- TEMPORARY FIX: For testing before bcrypt is integrated ---
-        // Assuming your 'gold' user password is 'smiths123ABC$'
-        const TEMPORARY_PASSWORD = 'smiths123ABC$'; 
-        const match = (password === TEMPORARY_PASSWORD); // REPLACE WITH REAL BCRYPT CHECK
-        // --- END TEMPORARY FIX ---
-
-
-        if (match) {
-            // Success: Set session variables
-            req.session.isLoggedIn = true;
-            req.session.userId = user.id; // Store ID for workout logs
-            req.session.username = user.username;
-            
-            return res.redirect('/'); // Redirect to home or logs page
-        }
+    
+    // 1. Basic Validation (Password match)
+    if (password !== confirm_password) {
+        return res.render('register', { pageTitle: 'User Registration', error: 'Passwords do not match.' });
     }
 
-    // Failure: Re-render login with an error message
-    res.render('login', { 
-        pageTitle: 'User Login',
-        error: 'Invalid username or password.' // Pass the error message
-    });
-});
+    try {
+        // 2. Check if user already exists
+        const [existingUser] = await pool.query('SELECT id FROM User WHERE username = ? OR email = ?', [username, email]);
+        if (existingUser.length > 0) {
+            return res.render('register', { pageTitle: 'User Registration', error: 'Username or Email already in use.' });
+        }
 
-// GET /logout - Clears session and redirects
-router.get('/logout', (req, res) => {
-    req.session.destroy(err => {
-        if (err) console.error(err);
-        res.redirect('/login');
-    });
+        // 3. Hash the password
+        const saltRounds = 10;
+        const password_hash = await bcrypt.hash(password, saltRounds);
+
+        // 4. Insert new user into the database
+        const result = await pool.query(
+            'INSERT INTO User (username, email, password_hash) VALUES (?, ?, ?)',
+            [username, email, password_hash]
+        );
+
+        // Success: Redirect to login page
+        res.redirect('/login?registered=true');
+
+    } catch (error) {
+        console.error('Registration error:', error);
+        res.render('register', { pageTitle: 'User Registration', error: 'An unexpected error occurred during registration.' });
+    }
 });
 
 module.exports = router;

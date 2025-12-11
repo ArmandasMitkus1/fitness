@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title><%= pageTitle %></title>
+</head>
+<body>
+<header>
+    <h1><a href="/">Fitness Tracker DWA</a></h1>
+    <nav>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/about">About</a></li>
+            <% if (isLoggedIn) { %>
+                <li><a href="/logs">Logs & Search</a></li>
+                <li><a href="/add-workout">Add Workout</a></li>
+                <li><a href="/charts">Charts (Advanced)</a></li>
+                <li><a href="/logout">Logout (<%= username %>)</a></li>
+            <% } else { %>
+                <li><a href="/register">Register</a></li>
+                <li><a href="/login">Login</a></li>
+            <% } %>
+        </ul>
+    </nav>
+</header>
+
+<h1>Edit Workout</h1>
+
+<% if (error) { %>
+  <p style="color:red;"><%= error %></p>
+<% } %>
+
+<form method="POST" action="/workouts/<%= workout.id %>/edit">
+  <label>Date:</label>
+  <input
+    type="date"
+    name="workout_date"
+    required
+    value="<%= (workout.workout_date instanceof Date
+                ? workout.workout_date.toISOString().slice(0,10)
+                : workout.workout_date) %>"
+  ><br><br>
+
+  <label>Type:</label>
+  <input type="text" name="type" required value="<%= workout.type %>"><br><br>
+
+  <label>Duration (min):</label>
+  <input type="number" name="duration_minutes" required value="<%= workout.duration_minutes %>"><br><br>
+
+  <label>Notes:</label>
+  <textarea name="notes"><%= workout.notes %></textarea><br><br>
+
+  <button type="submit">Save Changes</button>
+</form>
+
+<p><a href="/logs">Back to Logs</a></p>
+</body>
+</html>

@@ -9,12 +9,12 @@ const path = require('path');
 // 1. Setup Express
 const express = require('express');
 const app = express();
-const PORT = 8000; // Required port: The app must listen on port 8000
+const PORT = 8000; // Required port
 
-// 2. Setup EJS as the view engine - ***FIXED ABSOLUTE PATH***
+// 2. Setup EJS as the view engine
 app.set('view engine', 'ejs');
 // Use an absolute path to ensure EJS correctly finds the 'views' folder
-app.set('views', path.join(__dirname, 'views')); // The correct path setting
+app.set('views', path.join(__dirname, 'views')); 
 
 // 3. Middleware
 // To serve static files (CSS/JS/images) from the 'public' folder
@@ -30,7 +30,7 @@ app.use(session({
     secret: process.env.SESSION_SECRET || 'A_STRONG_FALLBACK_SECRET_KEY',
     resave: false,
     saveUninitialized: false,
-    // Note: cookie: { secure: false } is appropriate for the non-HTTPS VM deployment
+    // Note: secure: false is appropriate for the non-HTTPS VM deployment
 }));
 
 // 4. Database Connection Pool Setup (using the environment variables)
@@ -55,11 +55,12 @@ app.use((req, res, next) => {
     next();
 });
 
-// 6. Basic Routes Setup (Require authentication for secure routes)
+// 6. Basic Routes Setup
 const router = express.Router(); 
 const authRoutes = require('./routes/auth'); 
 const workoutRoutes = require('./routes/workouts'); 
 
+// Core Compulsory Pages (Home and About)
 router.get('/', (req, res) => {
     res.render('index', { pageTitle: 'Home Page' });
 });

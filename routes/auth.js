@@ -2,17 +2,71 @@
 
 const express = require('express');
 const router = express.Router();
-const bcrypt = require('bcrypt'); // Make sure bcrypt is required!
+const bcrypt = require('bcrypt'); 
+// NOTE: Make sure your package.json has 'bcrypt' and you ran npm install
 
-// (Your existing /login and /logout routes go here)
+// =========================================================
+// 1. LOGIN ROUTES
+// =========================================================
 
-// --- NEW REGISTRATION ROUTES ---
+// GET /login - Renders the login form
+router.get('/login', (req, res) => {
+    // PASSING 'error: null' prevents the ReferenceError on initial page load
+    res.render('login', { 
+        pageTitle: 'User Login',
+        error: null 
+    });
+});
+
+// POST /login - Handles form submission and authentication
+router.post('/login', async (req, res) => {
+    const { username, password } = req.body;
+    const pool = req.app.locals.pool;
+
+    try {
+        // 1. Check for user existence
+        const [rows] = await pool.query('SELECT * FROM User WHERE username = ?', [username]);
+        const user = rows[0];
+
+        if (user) {
+            // 2. Password Check (using bcrypt)
+            const match = await bcrypt.compare(password, user.password_hash);
+            
+            if (match) {
+                // Success: Set session variables
+                req.session.isLoggedIn = true;
+                req.session.userId = user.id;
+                req.session.username = user.username;
+                
+                return res.redirect('/'); 
+            }
+        }
+
+        // Failure: Re-render login with an error message
+        res.render('login', { 
+            pageTitle: 'User Login',
+            error: 'Invalid username or password.'
+        });
+
+    } catch (error) {
+        console.error('Login error:', error);
+        res.render('login', { 
+            pageTitle: 'User Login',
+            error: 'A database error occurred during login.' 
+        });
+    }
+});
+
+
+// =========================================================
+// 2. REGISTRATION ROUTES
+// =========================================================
 
 // GET /register - Renders the registration form
 router.get('/register', (req, res) => {
     res.render('register', { 
         pageTitle: 'User Registration',
-        error: null // Initialize error variable
+        error: null 
     });
 });
 
@@ -38,7 +92,7 @@ router.post('/register', async (req, res) => {
         const password_hash = await bcrypt.hash(password, saltRounds);
 
         // 4. Insert new user into the database
-        const result = await pool.query(
+        await pool.query(
             'INSERT INTO User (username, email, password_hash) VALUES (?, ?, ?)',
             [username, email, password_hash]
         );
@@ -50,6 +104,18 @@ router.post('/register', async (req, res) => {
         console.error('Registration error:', error);
         res.render('register', { pageTitle: 'User Registration', error: 'An unexpected error occurred during registration.' });
     }
+});
+
+// =========================================================
+// 3. LOGOUT ROUTE
+// =========================================================
+
+// GET /logout - Clears session and redirects
+router.get('/logout', (req, res) => {
+    req.session.destroy(err => {
+        if (err) console.error(err);
+        res.redirect('/login');
+    });
 });
 
 module.exports = router;

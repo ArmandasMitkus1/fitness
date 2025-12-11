@@ -1,73 +1,34 @@
-//-----------------------------------------------------
-// IMPORTS
-//-----------------------------------------------------
-const express = require('express');
-const bodyParser = require('body-parser');
-const session = require('express-session');
-const mysql = require('mysql2');
-const expressSanitizer = require('express-sanitizer');
+// index.js
+
+// Load environment variables from .env file
 require('dotenv').config();
 
-//-----------------------------------------------------
-// INITIALISE SERVER
-//-----------------------------------------------------
+// 1. Setup Express
+const express = require('express');
 const app = express();
-const port = 8000;
+const PORT = 8000; 
 
-//-----------------------------------------------------
-// DATABASE
-//-----------------------------------------------------
-const db = mysql.createPool({
-  host: process.env.DB_HOST || "localhost",
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME
-});
-global.db = db;
-
-//-----------------------------------------------------
-// SHOP SETTINGS
-//-----------------------------------------------------
-const appData = {
-  appName: "Fitness Tracker",
-  basePath: ""
-};
-
-//-----------------------------------------------------
-// MIDDLEWARE
-//-----------------------------------------------------
+// REQUIRED: Session Middleware
+const session = require('express-session'); // Assuming you ran npm install for this
 app.use(session({
-  secret: "randomsecretkey",
-  resave: false,
-  saveUninitialized: false,
-  cookie: { maxAge: 3600000 }
+    secret: 'A_STRONG_SECRET_KEY_FOR_SESSIONS', // CHANGE THIS!
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false } // Set to true if deployed with HTTPS
 }));
-app.use(expressSanitizer());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static(__dirname + "/public"));
 
-//-----------------------------------------------------
-// VIEW ENGINE
-//-----------------------------------------------------
-app.set("views", __dirname + "/views");
-app.set("view engine", "ejs");
+// ... (rest of index.js middleware setup: EJS, static, urlencoded)
 
-//-----------------------------------------------------
-// ROUTES
-//-----------------------------------------------------
-const router = require("express").Router();
+// ... (rest of database connection setup)
 
-// Core routes
-require("./routes/main")(router, appData);
+// 5. Basic Routes Setup (Require authentication for secure routes)
+const router = express.Router();
+const authRoutes = require('./routes/auth'); // NEW AUTH ROUTES
+const workoutRoutes = require('./routes/workouts'); 
 
-// API routes
-require("./routes/api")(router);
+// Attach the routers to the app
+app.use('/', router);
+app.use('/', authRoutes); // Use the new authentication routes
+app.use('/', workoutRoutes); 
 
-app.use("/", router);
-
-//-----------------------------------------------------
-// START SERVER
-//-----------------------------------------------------
-app.listen(port, () => {
-  console.log(`🚀 Server running at http://localhost:${port}/`);
-});
+// ... (Start the server)
